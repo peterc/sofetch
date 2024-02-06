@@ -1,0 +1,31 @@
+PATH
+  remote: .
+  specs:
+    sofetch (0.0.1)
+      nokogiri (~> 1.16.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    mini_portile2 (2.8.5)
+    nokogiri (1.16.2)
+      mini_portile2 (~> 2.8.2)
+      racc (~> 1.4)
+    nokogiri (1.16.2-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.16.2-x86_64-linux)
+      racc (~> 1.4)
+    racc (1.7.3)
+    rake (13.1.0)
+
+PLATFORMS
+  arm64-darwin-21
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  rake (~> 13.0)
+  sofetch!
+
+BUNDLED WITH
+   2.5.3

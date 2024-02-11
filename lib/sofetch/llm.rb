@@ -24,7 +24,6 @@ module Sofetch
       system_prompt = %{
         Return a JSON object that summarizes the page based upon the
         provided context and metadata. Use these keys in the JSON object:
-        - url
         - site_name (i.e. the broad name of the site, if any)
         - type (e.g. article, website, error)
         - title (a string, in Title Case, ideally)
@@ -42,7 +41,6 @@ module Sofetch
       system_prompt = %{
         Return a JSON object that best summarizes the page based upon the
         provided HTML. Use these keys in the JSON object:
-        - url
         - site_name (i.e. the broad name of the site, if any)
         - type (e.g. article, website, error)
         - title (a string, in Title Case, ideally)
@@ -61,7 +59,6 @@ module Sofetch
         Return a JSON object that best summarizes the page based upon the
         two provided JSON fragments which are attempted summaries by two
         other people. Use these keys in your JSON object:
-        - url
         - site_name (i.e. the broad name of the site, if any)
         - type (e.g. article, website, error)
         - title (a string, in Title Case, ideally)
@@ -75,6 +72,27 @@ module Sofetch
         system: system_prompt,
         prompt: generate_summary_from_metadata.to_json + "\n\n" + generate_summary_from_html.to_json,
         model: BETTER_GPT_MODEL
+      )
+    end
+
+    def generate_quick_summary(force: false)
+      @quick_summary = nil if force
+      system_prompt = %{
+        Return a JSON object that best summarizes the page based upon the
+        two provided JSON fragments which are attempted summaries by two
+        other people. Use these keys in your JSON object:
+        - site_name (i.e. the broad name of the site, if any)
+        - type (e.g. article, website, error)
+        - title (a string, in Title Case, ideally)
+        - description
+        - author (this can be a string or an array for multiple authors)
+        - published_at (in ISO 8601 format)
+        - tags (an array of lowercase single word tags, kebab_case is ok)
+        Do not include any keys that have no value or an empty string value.
+      }.strip
+      @summary ||= gpt_call_json(
+        system: system_prompt,
+        prompt: make_page_overview + "\n\nHTML: " + @page.clean_html[0, (MAX_BYTES_OF_HTML/2)]
       )
     end
 

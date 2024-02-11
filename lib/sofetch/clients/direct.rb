@@ -2,7 +2,7 @@ require 'http'
 
 module Sofetch
   class DirectClient < GenericClient
-    HTTP_CLIENT = HTTP.follow(max_hops: 3).timeout(HTTP_TIMEOUT)
+    HTTP_CLIENT = HTTP.headers(:user_agent => "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Sofetch/0.1.1").follow(max_hops: 3).timeout(HTTP_TIMEOUT)
 
     def request(url:, params: {})
       res = HTTP_CLIENT.get(url)

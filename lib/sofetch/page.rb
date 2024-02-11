@@ -49,24 +49,29 @@ module Sofetch
 
     def opengraph
       raise Sofetch::Error, "No data available" unless @raw_data
+      return nil unless @raw_data[:metadata]
       @opengraph ||= @raw_data[:metadata]["opengraph"]&.first
     end
 
     def metas
+      return nil unless html_document
       html_document.css("meta").map { |meta|
         [meta.attributes["name"]&.value || meta.attributes["property"]&.value, meta.attributes["content"]&.value]
       }.to_h
     end
 
     def headings
+      return nil unless html_document
       html_document.css("h1, h2, h3").map(&:text).compact.uniq.map(&:strip).reject(&:empty?).first(10)
     end
 
     def paragraphs
+      return nil unless html_document
       html_document.css("p").map(&:text).map(&:strip).reject(&:empty?).first(10)
     end
 
     def html
+      return nil unless raw_data[:type] && raw_data[:type] == 'html'
       raise Sofetch::Error, "No data available" unless @raw_data && raw_data[:body]
       raw_data[:body]
     end
@@ -76,6 +81,7 @@ module Sofetch
     end
 
     def feeds
+      return nil unless html_document
       raise Sofetch::Error, "No data available" unless @raw_data
       feeds = []
       feeds << html_document.at_css("link[type='application/rss+xml']")&.attributes&.dig("href")&.value
@@ -88,6 +94,7 @@ module Sofetch
 
     def published_at
       raise Sofetch::Error, "No data available" unless @raw_data
+      return nil unless html_document
       published_ats = []
       published_ats << (opengraph["article:published_time"] || opengraph["og:pubdate"] || opengraph["og:article:published_time"]) if opengraph
       published_ats << metas["article:published_time"] if metas
@@ -101,6 +108,7 @@ module Sofetch
 
     def authors
       raise Sofetch::Error, "No data available" unless @raw_data
+      return nil unless html_document
       authors = []
       authors << opengraph["article:author"] if opengraph
       authors << metas["author"] if metas
@@ -111,10 +119,13 @@ module Sofetch
     end
 
     def html_document
+      return nil unless html
       @html_document ||= Nokogiri::HTML(html)
     end
 
     def clean_html_document
+      return nil unless html_document
+
       html_document.css("script, style").remove
       # Remove all elements that have a hidden attribute
       html_document.css("[hidden]").remove
@@ -199,6 +210,7 @@ module Sofetch
     end
 
     def clean_html
+      return nil unless html_document
       d = clean_html_document.to_html
       d.gsub!(/\s+/, " ")
       d.gsub!(/\n+/, "\n")
@@ -208,12 +220,14 @@ module Sofetch
     end
 
     def type
+      return nil unless html_document
       return metas["og:type"] if metas
       return opengraph["og:type"] if opengraph
       nil
     end
 
     def titles
+      return nil unless html_document
       raise Sofetch::Error, "No data available" unless @raw_data
       titles = []
       titles << opengraph["og:title"] if opengraph
@@ -222,6 +236,7 @@ module Sofetch
     end
 
     def descriptions
+      return nil unless html_document
       raise Sofetch::Error, "No data available" unless @raw_data
       descriptions = []
       descriptions << opengraph["og:description"] if opengraph
@@ -231,6 +246,7 @@ module Sofetch
     end
 
     def site_name
+      return nil unless html_document
       if opengraph
         name = opengraph["og:site_name"].to_s.strip
         return name unless name.empty?

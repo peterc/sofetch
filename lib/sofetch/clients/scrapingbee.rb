@@ -31,7 +31,7 @@ module Sofetch
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == 'https'
       http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-      req =  Net::HTTP::Get.new(uri)
+      req = Net::HTTP::Get.new(uri)
       res = http.request(req)
       status_code = res.code.to_i
       body = res.body

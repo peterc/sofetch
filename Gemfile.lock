@@ -1,8 +1,10 @@
 PATH
   remote: .
   specs:
-    sofetch (0.1.0)
+    sofetch (0.1.1)
+      http (~> 5.2)
       nokogiri (~> 1.16.2)
+      ruby-openai (~> 6.3)
 
 GEM
   remote: https://rubygems.org/
@@ -60,9 +62,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  http (~> 5.2)
   rake (~> 13.0)
-  ruby-openai (~> 6.3)
   sofetch!
 
 BUNDLED WITH

@@ -58,12 +58,12 @@ module Sofetch
 
     def opengraph
       raise Sofetch::Error, "No data available" unless @raw_data
-      return nil unless @raw_data[:metadata]
+      return {} unless @raw_data[:metadata]
       @opengraph ||= @raw_data[:metadata]["opengraph"]&.first
     end
 
     def metas
-      return nil unless html_document
+      return {} unless html_document
       html_document.css("meta").map { |meta|
         [meta.attributes["name"]&.value || meta.attributes["property"]&.value, meta.attributes["content"]&.value]
       }.to_h
@@ -80,7 +80,7 @@ module Sofetch
     end
 
     def html
-      return nil unless raw_data[:type] && raw_data[:type] == 'html'
+      return '' unless raw_data[:type] && raw_data[:type] == 'html'
       raise Sofetch::Error, "No data available" unless @raw_data && raw_data[:body]
       raw_data[:body]
     end
@@ -90,7 +90,7 @@ module Sofetch
     end
 
     def feeds
-      return nil unless html_document
+      return [] unless html_document
       raise Sofetch::Error, "No data available" unless @raw_data
       feeds = []
       feeds << html_document.at_css("link[type='application/rss+xml']")&.attributes&.dig("href")&.value
@@ -219,7 +219,7 @@ module Sofetch
     end
 
     def clean_html
-      return nil unless html_document
+      return '' unless html_document
       d = clean_html_document.to_html
       d.gsub!(/\s+/, " ")
       d.gsub!(/\n+/, "\n")
@@ -229,7 +229,7 @@ module Sofetch
     end
 
     def type
-      return nil unless html_document
+      return 'unknown' unless html_document
       return metas["og:type"] if metas
       return opengraph["og:type"] if opengraph
       nil
@@ -255,7 +255,7 @@ module Sofetch
     end
 
     def site_name
-      return nil unless html_document
+      return 'unknown' unless html_document
       if opengraph
         name = opengraph["og:site_name"].to_s.strip
         return name unless name.empty?

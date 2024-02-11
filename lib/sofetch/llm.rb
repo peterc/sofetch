@@ -125,6 +125,7 @@ module Sofetch
     private
 
     def gpt_call(prompt:, system: nil, model: GPT_MODEL, json: false)
+      retries = 3
       messages = []
       messages << { role: "system", content: system } if system
       messages << { role: "user", content: prompt }
@@ -132,10 +133,19 @@ module Sofetch
       parameters[:response_format] = { type: "json_object" } if json
       response = @gpt.chat(parameters: parameters)
       response.dig("choices", 0, "message", "content")
+    rescue Net::ReadTimeout
+      retries -= 1
+      retry if retries > 0
+      return nil
     end
     
     def gpt_call_json(prompt:, system: nil, model: GPT_MODEL)
-      JSON.parse(gpt_call(prompt: prompt, system: system, model: model, json: true))
+      res = gpt_call(prompt: prompt, system: system, model: model, json: true)
+      if res
+        return JSON.parse(res)
+      else
+        return {}
+      end
     end
   end
 end

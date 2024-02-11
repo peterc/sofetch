@@ -19,7 +19,8 @@ module Sofetch
       end
     end
 
-    def generate_summary_from_metadata
+    def generate_summary_from_metadata(force: false)
+      @summary_from_metadata = nil if force
       system_prompt = %{
         Return a JSON object that summarizes the page based upon the
         provided context and metadata. Use these keys in the JSON object:
@@ -33,10 +34,11 @@ module Sofetch
         - tags (an array of lowercase single word tags, kebab_case is ok)
         Do not include any keys that have no value or an empty string value.
       }.strip
-      gpt_call_json(system: system_prompt, prompt: make_page_overview) 
+      @summary_from_metadata ||= gpt_call_json(system: system_prompt, prompt: make_page_overview) 
     end
 
-    def generate_summary_from_html
+    def generate_summary_from_html(force: false)
+      @summary_from_html = nil if force
       system_prompt = %{
         Return a JSON object that best summarizes the page based upon the
         provided HTML. Use these keys in the JSON object:
@@ -50,10 +52,11 @@ module Sofetch
         - tags (an array of lowercase single word tags, kebab_case is ok)
         Do not include any keys that have no value or an empty string value.
       }.strip
-      gpt_call_json(system: system_prompt, prompt: @page.clean_html[0, MAX_BYTES_OF_HTML]) 
+      @summary_from_html ||= gpt_call_json(system: system_prompt, prompt: @page.clean_html[0, MAX_BYTES_OF_HTML]) 
     end
 
-    def generate_summary
+    def generate_summary(force: false)
+      @summary = nil if force
       system_prompt = %{
         Return a JSON object that best summarizes the page based upon the
         two provided JSON fragments which are attempted summaries by two
@@ -68,13 +71,12 @@ module Sofetch
         - tags (an array of lowercase single word tags, kebab_case is ok)
         Do not include any keys that have no value or an empty string value.
       }.strip
-      gpt_call_json(
+      @summary ||= gpt_call_json(
         system: system_prompt,
         prompt: generate_summary_from_metadata.to_json + "\n\n" + generate_summary_from_html.to_json,
         model: BETTER_GPT_MODEL
       )
-
-    end      
+    end
 
     def make_page_overview
       out = []

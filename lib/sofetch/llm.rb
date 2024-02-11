@@ -134,12 +134,12 @@ module Sofetch
 
       begin
         response = @gpt.chat(parameters: parameters)
-      rescue Net::ReadTimeout
+      rescue Net::ReadTimeout, Faraday::TimeoutError => e
         retries -= 1
         retry if retries > 0
         return nil
       end
-      
+
       response.dig("choices", 0, "message", "content")
     end
     

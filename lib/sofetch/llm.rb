@@ -13,7 +13,7 @@ module Sofetch
 
       # If we can't create an OpenAI client, there's no need for this whole class
       begin
-        @gpt = OpenAI::Client.new(access_token: ENV.fetch('OPENAI_API_KEY'))
+        @gpt = OpenAI::Client.new(access_token: ENV.fetch('OPENAI_API_KEY'), request_timeout: 30)
       rescue
         raise ArgumentError, 'No OpenAI API key'
       end
@@ -131,12 +131,16 @@ module Sofetch
       messages << { role: "user", content: prompt }
       parameters = { model: model, messages: messages }
       parameters[:response_format] = { type: "json_object" } if json
-      response = @gpt.chat(parameters: parameters)
+
+      begin
+        response = @gpt.chat(parameters: parameters)
+      rescue Net::ReadTimeout
+        retries -= 1
+        retry if retries > 0
+        return nil
+      end
+      
       response.dig("choices", 0, "message", "content")
-    rescue Net::ReadTimeout
-      retries -= 1
-      retry if retries > 0
-      return nil
     end
     
     def gpt_call_json(prompt:, system: nil, model: GPT_MODEL)

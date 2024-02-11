@@ -41,7 +41,7 @@ module Sofetch
         body = body.transform_keys(&:to_sym)
         return { code: status_code, success: true }.merge(body)
       end
-
+      
       return { code: status_code, success: false, text: body }
     end
   end

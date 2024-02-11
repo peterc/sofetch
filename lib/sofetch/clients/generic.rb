@@ -3,7 +3,7 @@ require 'net/https'
 
 module Sofetch
   class GenericClient
-    HTTP_TIMEOUT = 10  # seconds
+    HTTP_TIMEOUT = 15  # seconds
 
     def request(url:, params: {}, client_class: nil)
       url = url.strip
@@ -21,7 +21,7 @@ module Sofetch
         # Normalize headers by converting all keys to lowercase strings
         resp[:headers] = resp[:headers].transform_keys(&:downcase)
       end
-      unless resp[:type]
+      if !resp[:type] && resp[:headers]
         resp[:type] ||= resp[:headers]['content-type']&.split(';')&.first
         resp[:type] = 'html' if resp[:type]&.include?('text/html')
       end

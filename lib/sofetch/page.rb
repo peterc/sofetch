@@ -3,10 +3,15 @@ require 'nokogiri'
 
 module Sofetch
   class Page
-    attr_reader :raw_data, :url
+    attr_reader :raw_data, :url, :succeeded, :error_message
+
+    alias success? succeeded
+    alias ok? succeeded
+
     def initialize(url)
       @url = url
       @raw_data = nil
+      @succeeded = nil
     end
 
     def llm
@@ -18,14 +23,16 @@ module Sofetch
         response = Sofetch::GenericClient.new.request(url: @url, params: { render_js: render_js })
         if response[:success]
           @raw_data = response
+          @succeeded = true
           return true
-        elsif response["text"] && response["text"].include?("try with render_js")
+        elsif response[:text] && response[:text].include?("try with render_js")
           render_js = true
           next
-        else
-          raise Sofetch::Error, "Failed to fetch page: #{response[:text]}"
         end
+        @succeeded = false
+        @error_message = response[:text]
       end
+      return false
     end
 
     def to_hash
@@ -46,6 +53,8 @@ module Sofetch
         html: html
       }
     end
+
+    alias to_h to_hash
 
     def opengraph
       raise Sofetch::Error, "No data available" unless @raw_data

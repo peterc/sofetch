@@ -77,7 +77,7 @@ module Sofetch
     end
 
     def resolved_url
-      raw_data[:"resolved-url"]
+      raw_data[:"resolved-url"] 
     end
 
     def feeds

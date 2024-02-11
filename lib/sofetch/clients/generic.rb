@@ -12,7 +12,7 @@ module Sofetch
       
       unless client_class
         client_class = DirectClient
-        #client_class = ScrapingbeeClient if ENV['SCRAPINGBEE_API_KEY']
+        client_class = ScrapingbeeClient if ENV['SCRAPINGBEE_API_KEY']
       end
 
       resp = client_class.new.request(url: url, params: params)

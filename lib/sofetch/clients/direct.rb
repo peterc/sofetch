@@ -9,6 +9,7 @@ module Sofetch
       body = res.body.to_s
       resp = { code: res.code.to_i, success: res.code == 200, body: body }
       resp[:headers] = res.headers.to_h
+      resp[:"resolved-url"] = res.uri.to_s
       return resp
     end
   end

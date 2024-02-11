@@ -70,13 +70,13 @@ module Sofetch
     end
 
     def headings
-      return nil unless html_document
+      return [] unless html_document
       html_document.css("h1, h2, h3").map(&:text).compact.uniq.map(&:strip).reject(&:empty?).first(10)
     end
 
     def paragraphs
-      return nil unless html_document
-      html_document.css("p").map(&:text).map(&:strip).reject(&:empty?).first(10)
+      return [] unless html_document
+      html_document.css("p").map(&:text).map(&:strip).reject(&:empty?).reject { |text| text.length > 1024 }.first(10)
     end
 
     def html
@@ -103,7 +103,7 @@ module Sofetch
 
     def published_at
       raise Sofetch::Error, "No data available" unless @raw_data
-      return nil unless html_document
+      return [] unless html_document
       published_ats = []
       published_ats << (opengraph["article:published_time"] || opengraph["og:pubdate"] || opengraph["og:article:published_time"]) if opengraph
       published_ats << metas["article:published_time"] if metas
@@ -117,7 +117,7 @@ module Sofetch
 
     def authors
       raise Sofetch::Error, "No data available" unless @raw_data
-      return nil unless html_document
+      return [] unless html_document
       authors = []
       authors << opengraph["article:author"] if opengraph
       authors << metas["author"] if metas
@@ -236,7 +236,7 @@ module Sofetch
     end
 
     def titles
-      return nil unless html_document
+      return [] unless html_document
       raise Sofetch::Error, "No data available" unless @raw_data
       titles = []
       titles << opengraph["og:title"] if opengraph
@@ -245,7 +245,7 @@ module Sofetch
     end
 
     def descriptions
-      return nil unless html_document
+      return [] unless html_document
       raise Sofetch::Error, "No data available" unless @raw_data
       descriptions = []
       descriptions << opengraph["og:description"] if opengraph

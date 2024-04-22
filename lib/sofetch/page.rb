@@ -18,6 +18,10 @@ module Sofetch
       @llm ||= Sofetch::LLM.new(self)
     end
 
+    def llm_summary
+      llm.generate_quick_summary
+    end
+
     def fetch(render_js: false)
       2.times do
         response = Sofetch::GenericClient.new.request(url: @url, params: { render_js: render_js })
@@ -71,12 +75,21 @@ module Sofetch
 
     def headings
       return [] unless html_document
-      html_document.css("h1, h2, h3").map(&:text).compact.uniq.map(&:strip).reject(&:empty?).first(10)
+      headings = html_document.css("h1, h2, h3").map(&:text).compact.uniq.map(&:strip).reject(&:empty?)
+      headings = headings.reject { |heading| heading.scan(/\w+/).length < 3 }
+      headings.first(10)
     end
 
     def paragraphs
       return [] unless html_document
-      html_document.css("p").map(&:text).map(&:strip).reject(&:empty?).reject { |text| text.length > 1024 }.first(10)
+
+      root = html_document
+
+      if url =~ /github.com\/\w+\/\w+/
+        root = html_document.at_css(".entry-content")
+      end
+
+      root.css("p").map(&:text).map(&:strip).reject(&:empty?).reject { |text| text.length > 1024 }.first(10)
     end
 
     def html
@@ -88,6 +101,8 @@ module Sofetch
     def resolved_url
       raw_data[:"resolved-url"] 
     end
+
+    alias final_url resolved_url
 
     def feeds
       return [] unless html_document
@@ -130,6 +145,44 @@ module Sofetch
     def html_document
       return nil unless html
       @html_document ||= Nokogiri::HTML(html)
+    end
+
+    def text(max_bytes: nil)
+      return nil unless html_document
+      texts = []
+      texts << html_document.css("[itemprop='text']").text
+      texts << html_document.css("[itemprop='articleBody']").text
+      texts << html_document.css("[itemprop='description']").text
+      texts << html_document.css("article p").text
+      texts = texts.join("\n")
+
+      max_bytes ? texts[0, max_bytes] : texts
+    end
+
+    def overview
+      out = []
+      out << "URL: #{url}"
+      out << "SITE NAME: #{site_name}" if site_name
+      #out << "CONTENT TYPE: #{type}" if type
+      titles.each do |title|
+        out << "POSSIBLE TITLE: #{title}"
+      end
+      descriptions.each do |description|
+        out << "POSSIBLE DESCRIPTION: #{description}"
+      end
+      authors.each do |author|
+        out << "POSSIBLE AUTHOR: #{author}"
+      end
+      published_at.each do |published_at|
+        out << "POSSIBLE DATE: #{published_at}"
+      end
+      headings.each do |heading|
+        out << "HEADING: #{heading}"
+      end
+      paragraphs.first(3).each.with_index do |paragraph, i|
+        out << "PARAGRAPH #{i+1}: #{paragraph}"
+      end
+      out.join("\n")
     end
 
     def clean_html_document
@@ -218,14 +271,18 @@ module Sofetch
       html_document
     end
 
-    def clean_html
+    def clean_html(max_bytes: nil)
       return '' unless html_document
       d = clean_html_document.to_html
       d.gsub!(/\s+/, " ")
       d.gsub!(/\n+/, "\n")
       d.gsub!(/>\s+</, "><")
       d.gsub!("<!DOCTYPE html>", "")
-      d
+      if max_bytes
+        d = d[0, max_bytes]
+      else 
+        d
+      end
     end
 
     def type

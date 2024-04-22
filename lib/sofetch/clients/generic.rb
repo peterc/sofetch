@@ -18,7 +18,7 @@ module Sofetch
       resp = client_class.new.request(url: url, params: params)
       resp[:client_class] = client_class.to_s
       if resp[:headers]
-        # Normalize headers by converting all keys to lowercase strings
+        # Normalize headers by converting all respkeys to lowercase strings
         resp[:headers] = resp[:headers].transform_keys(&:downcase)
       end
       if !resp[:type] && resp[:headers]

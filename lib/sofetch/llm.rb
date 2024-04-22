@@ -2,8 +2,8 @@ require 'openai'
 
 module Sofetch
   class LLM
-    GPT_MODEL = "gpt-3.5-turbo-0125"
-    BETTER_GPT_MODEL = "gpt-4-0125-preview"
+    GPT_MODEL = "gpt-3.5-turbo"
+    BETTER_GPT_MODEL = "gpt-4-turbo"
     MAX_BYTES_OF_HTML = 32768
 
     def initialize(page)
@@ -87,10 +87,10 @@ module Sofetch
         - description
         - author (this can be a string or an array for multiple authors)
         - published_at (in ISO 8601 format)
-        - tags (an array of lowercase single word tags, kebab_case is ok)
+        - tags (an array of lowercase single word tags, e.g. design, gaming, webdesign)
         Do not include any keys that have no value or an empty string value.
       }.strip
-      @summary ||= gpt_call_json(
+      @quick_summary ||= gpt_call_json(
         system: system_prompt,
         prompt: make_page_overview + "\n\nHTML: " + @page.clean_html[0, (MAX_BYTES_OF_HTML/2)]
       )

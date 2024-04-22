@@ -10,6 +10,8 @@ A library that fetches Web pages (either directly or via ScrapingBee – if an A
 gem 'sofetch', git: 'https://github.com/peterc/sofetch'
 ```
 
+Set the `SCRAPINGBEE_API_KEY` environment variable to use ScrapingBee.
+
 ## Usage
 
 ```ruby
@@ -30,6 +32,8 @@ Then:
 
 ```ruby
 page.to_hash
+page.overview
+page.llm_summary
 page.clean_html
 page.llm.generate_summary_from_html
 page.llm.generate_summary_from_metadata
